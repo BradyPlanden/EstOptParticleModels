@@ -8,18 +8,26 @@ parameter_values = pybamm.ParameterValues("Chen2020")
 parameter_values.update(
         {"Electrode height [m]": 0.04727, "Negative particle radius [m]": 0.4e-6, "Positive particle radius [m]":0.6e-5}
         )
-sim = pybamm.Simulation(model, parameter_values=parameter_values)
-sol = sim.solve([0, 1800], inputs={"I": 2})["Terminal voltage [V]"].data
+experiment =  pybamm.Experiment(
+    [
+        ("Discharge at 1C for 5 minutes (10 second period)",
+        "Rest for 2 minutes",
+        "Charge at 0.5C for 2.5 minutes (10 second period)",
+        "Rest for 2 minutes"),
+    ] * 10
+)
+sim = pybamm.Simulation(model,experiment=experiment, parameter_values=parameter_values)
+sol = sim.solve()["Terminal voltage [V]"].data
 
 # Gaussian noise
-s = np.random.normal(0,0.005,100)
+s = np.random.normal(0,0.005,len(sol))
 sol += s
 
 def forward(x, grad):
-    output = 2.5 * np.ones(100) 
+    output = 2.5 * np.ones(len(sol)) 
     parameter_values.update({"Electrode height [m]": x[0], "Negative particle radius [m]": x[1], "Positive particle radius [m]": x[2]})
-    sim = pybamm.Simulation(model, parameter_values=parameter_values)
-    new_sol = sim.solve([0, 1800])["Terminal voltage [V]"].data
+    sim = pybamm.Simulation(model, experiment=experiment, parameter_values=parameter_values)
+    new_sol = sim.solve()["Terminal voltage [V]"].data
     output[:len(new_sol)] = new_sol
     return sum((output - sol) ** 2)
 
