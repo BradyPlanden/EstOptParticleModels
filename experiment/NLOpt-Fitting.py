@@ -1,7 +1,9 @@
 import os 
 import pybamm
 import numpy as np
+import matplotlib.pyplot as plt
 from common.optim import *
+from models.LNMOParams import *
 
 # Model definition + loading Chen as default
 model = pybamm.lithium_ion.SPM()
@@ -13,7 +15,7 @@ DirPos = f'data/lnmo-exercise/LNMO_theta_OCV_singleSweep.parquet' #"/Users/brady
 LNMOParams(DirPos, DirNeg, params)
 
 # Creating ground-truth data for estimation
-parameter_values.update(
+params.update(
         {"Electrode height [m]": 0.04727, 
          "Negative particle radius [m]": 0.4e-6, 
          "Positive particle radius [m]":0.6e-5}
@@ -21,9 +23,9 @@ parameter_values.update(
 experiment =  pybamm.Experiment(
     [
         ("Discharge at 1C for 5 minutes (10 second period)",
-        "Rest for 2 minutes",
+        "Rest for 2 minutes (10 second period)",
         "Charge at 0.5C for 2.5 minutes (10 second period)",
-        "Rest for 2 minutes"),
+        "Rest for 2 minutes (10 second period)"),
     ] * 10
 )
 sim = pybamm.Simulation(model, experiment=experiment, parameter_values=params)
@@ -44,3 +46,16 @@ def forward(x, grad):
 x, minf = optimiser([0.065, 0.3e-6, 0.3e-5], forward, 1e-5,[0.03, 0.1e-6, 0.1e-5],[0.1, 0.8e-6, 0.8e-5])
 print("optimum at ", x)
 print("minimum value = ", minf)
+
+# Run estimated parameters
+params.update(
+        {"Electrode height [m]": x[0], 
+         "Negative particle radius [m]": x[1], 
+         "Positive particle radius [m]":x[2]}
+        )
+optsol = sim.solve()["Terminal voltage [V]"].data
+
+# Plotting
+plt.plot(sol)
+plt.plot(optsol)
+plt.savefig('sol.png')
