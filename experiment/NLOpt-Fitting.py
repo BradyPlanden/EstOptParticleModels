@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from common.optim import *
 from models.LNMOParams import *
+plt.rcParams["figure.figsize"] = (10,5.65)
 
 # Model definition + loading Chen as default
 model = pybamm.lithium_ion.SPM()
@@ -56,6 +57,16 @@ params.update(
 optsol = sim.solve()["Terminal voltage [V]"].data
 
 # Plotting
-plt.plot(sol)
-plt.plot(optsol)
+plt.figure(1)
+plt.plot(sol, label='Groundtruth')
+plt.plot(optsol, label='Estimated')
+plt.xlabel('Time (s)')
+plt.ylabel('Voltage (V)')
+plt.legend()
 plt.savefig('sol.png')
+
+plt.figure(2)
+plt.plot(sim.solution['Current [A]'].data)
+plt.xlabel('Time (s)')
+plt.ylabel('Current (A)')
+plt.savefig('sol1.png')
