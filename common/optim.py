@@ -17,5 +17,6 @@ def optimiser(k, fun, xtol, lb, ub):
     opt.set_lower_bounds(lb)
     opt.set_upper_bounds(ub)
     x = opt.optimize(k)
+    n = opt.get_numevals()
 
-    return  x, opt.last_optimum_value()
+    return  x, opt.last_optimum_value(), n

@@ -19,8 +19,7 @@ LNMOParams(DirPos, DirNeg, params)
 # Creating ground-truth data for estimation
 params.update(
         {"Electrode height [m]": 0.04727, 
-         "Negative particle radius [m]": 0.4e-6, 
-         "Positive particle radius [m]":0.6e-5}
+         "Negative particle radius [m]": 0.4e-6}
         )
 experiment =  pybamm.Experiment(
     [
@@ -37,7 +36,7 @@ sol += np.random.normal(0,0.005,len(sol))
 # Optimisation Function with L2Norm 
 def forward(x, grad):
     output = 2.5 * np.ones(len(sol)) 
-    params.update({"Electrode height [m]": x[0], "Negative particle radius [m]": x[1], "Positive particle radius [m]": x[2]})
+    params.update({"Electrode height [m]": x[0], "Negative particle radius [m]": x[1]})
     sim = pybamm.Simulation(model, experiment=experiment, parameter_values=params)
     new_sol = sim.solve()["Terminal voltage [V]"].data
     output[:len(new_sol)] = new_sol
@@ -45,19 +44,17 @@ def forward(x, grad):
 
 # Optimise
 t0 = time.time()
-x, minf, count = optimiser([0.065, 0.2e-6, 0.2e-5], forward, 1e-5,[0.03, 0.1e-6, 0.1e-5],[0.1, 0.8e-6, 0.8e-5])
+x, minf = optimiser([0.065, 0.3e-6], forward, 1e-5,[0.03, 0.1e-6],[0.1, 0.8e-6])
 t1 = time.time()
 total = t1-t0
 print("Optimisation Time", total)
-print("Number of iterations", count)
 print("optimum at ", x)
 print("minimum value = ", minf)
 
 # Run estimated parameters
 params.update(
         {"Electrode height [m]": x[0], 
-         "Negative particle radius [m]": x[1], 
-         "Positive particle radius [m]":x[2]}
+         "Negative particle radius [m]": x[1]}
         )
 optsol = sim.solve()["Terminal voltage [V]"].data
 
