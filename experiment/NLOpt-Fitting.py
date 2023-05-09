@@ -12,9 +12,10 @@ model = pybamm.lithium_ion.SPM()
 params = pybamm.ParameterValues("Chen2020")
 
 # Updating params for LNMO 
-DirNeg = f'data/lnmo-exercise/OCV_Graphite.parquet'#"/Users/bradyplanden/Documents/Git/2023-oslo-workshop/lnmo-exercise/OCV_Graphite.parquet"
-DirPos = f'data/lnmo-exercise/LNMO_theta_OCV_singleSweep.parquet' #"/Users/bradyplanden/Documents/Git/2023-oslo-workshop/lnmo-exercise/LNMO_theta_OCV_singleSweep.parquet"
+DirNeg = f'data/lnmo-exercise/OCV_Graphite.parquet'
+DirPos = f'data/lnmo-exercise/LNMO_theta_OCV_singleSweep.parquet'
 LNMOParams(DirPos, DirNeg, params)
+MinV = 2.5
 
 # Creating ground-truth data for estimation
 params.update(
@@ -36,14 +37,14 @@ sol += np.random.normal(0,0.005,len(sol))
 
 # Optimisation Function with L2Norm 
 def forward(x, grad):
-    output = 2.5 * np.ones(len(sol)) 
+    output = MinV * np.ones(len(sol))
     params.update({"Electrode height [m]": x[0], "Negative particle radius [m]": x[1], "Positive particle radius [m]": x[2]})
     sim = pybamm.Simulation(model, experiment=experiment, parameter_values=params)
     new_sol = sim.solve()["Terminal voltage [V]"].data
     output[:len(new_sol)] = new_sol
     return sum((output - sol) ** 2)
 
-# Optimise
+# Optimise with timing
 t0 = time.time()
 x, minf, count = optimiser([0.065, 0.2e-6, 0.2e-5], forward, 1e-5,[0.03, 0.1e-6, 0.1e-5],[0.1, 0.8e-6, 0.8e-5])
 t1 = time.time()
