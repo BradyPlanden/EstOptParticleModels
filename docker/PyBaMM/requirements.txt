@@ -1,0 +1,10 @@
+matplotlib
+numpy
+pandas
+scipy
+pybamm
+nlopt
+botorch
+jupyter
+jupyterlab
+pyarrow
