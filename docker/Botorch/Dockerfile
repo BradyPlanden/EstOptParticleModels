@@ -57,14 +57,20 @@ RUN mamba install --yes \
     'sqlalchemy' \
     'statsmodels' \
     'sympy' \
+    'nlopt' \ 
+    'pyarrow' \
+    'pytorch' \
+    'gpytorch' \
+    'botorch' \
     'widgetsnbextension'\
     'xlrd' && \
     mamba clean --all -f -y && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
     
-# Install Botorch & dependencies
-RUN conda install botorch -c pytorch -c gpytorch -c conda-forge
+# Pip install PyBaMM
+RUN pip install --upgrade pip
+RUN pip install pybamm
 
 # Install facets which does not have a pip or conda package at the moment
 WORKDIR /tmp
@@ -82,4 +88,4 @@ RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
 
 USER ${NB_UID}
 
-WORKDIR "${HOME}"
+WORKDIR /home/jupyter
