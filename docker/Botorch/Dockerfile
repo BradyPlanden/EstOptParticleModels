@@ -88,4 +88,4 @@ RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
 
 USER ${NB_UID}
 
-WORKDIR /home/jupyter
+WORKDIR "${HOME}"
